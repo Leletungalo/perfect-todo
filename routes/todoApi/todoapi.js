@@ -34,7 +34,6 @@ router.get("/:id", (req, res) => {
 
 router.get("/search/:searchInput", (req, res) => {
   const searchInput = req.params.searchInput;
-  console.log(searchInput);
   databese.find({ todo: `${searchInput}` }, (err, data) => {
     if (err) throw err;
     console.log(data);
@@ -48,13 +47,19 @@ router.get("/search/:searchInput", (req, res) => {
 
 router.post("/", (req, res) => {
   const todo = req.body.todo;
-  if (todo !== "") {
+  console.log(todo)
+  if (todo !== "" && todo !== undefined) {
     databese.insert({ todo, completed: false });
-    res.json({ msg: "done" });
+    databese.find({}, (err, data) => {
+      if (err) throw err;
+      res.send(data);
+    });
+  }else{
+    res.sendStatus(500);
   }
 });
 
-router.put("/:id", (req, res) => {
+router.post("/:id", (req, res) => {
   databese.find({ _id: `${req.params.id}` }, (err, data) => {
     if (err) {
       res.status(400).json({ error: err });
@@ -76,14 +81,24 @@ router.put("/:id", (req, res) => {
 router.delete("/:id", (req, res) => {
   databese.remove({ _id: `${req.params.id}` }, (err, resiponse) => {
     if (err) throw err;
-    res.status(200).json({ delete: resiponse });
+    databese.find({}, (err, data) => {
+      if (err) throw err;
+      res.status(200).send(data);
+    });
   });
 });
 
-function fillData() {
-  todos.forEach((element) => {
-    databese.insert({ todo: element.msg, completed: false, deleted: false });
-  });
-}
+router.put("/markAsComplete/:id", (req,res) => {
+  databese.update({_id:req.params.id},{$set:{completed:"true"}}, { multi: true },(err,data) => {
+    if(err) {
+      console.log("leg", err);
+      return res.sendStatus(500);
+    };
+    databese.find({}, (err, data) => {
+      if (err) throw err;
+     return res.status(200).send(data);
+    });
+  })
+})
 
 module.exports = router;
