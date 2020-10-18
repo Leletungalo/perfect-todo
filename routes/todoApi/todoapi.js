@@ -1,6 +1,5 @@
 const express = require("express");
 const DaterStore = require("nedb");
-const todos = require("../../todos");
 const router = express.Router();
 
 const databese = new DaterStore("databese.db");
@@ -21,7 +20,6 @@ router.get("/", (req, res) => {
 
 router.get("/:id", (req, res) => {
   const id = req.params.id;
-  console.log(id);
   databese.find({ _id: id }, (err, data) => {
     if (err) throw err;
     if (data.length > 0) {
